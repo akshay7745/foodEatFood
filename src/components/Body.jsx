@@ -1,9 +1,12 @@
 import RestaurantCard from "./RestaurantCard";
 import { restaurants } from "../utils/mockData";
 import { useEffect, useState } from "react";
+import ShimmerUI from "./ShimmerUI";
 
 const Body = () => {
-  const [resData, setResData] = useState(restaurants);
+  const [resData, setResData] = useState([]);
+  const [allRes, setAllRes] = useState([]);
+  const [restaurantText, setRestaurantText] = useState("");
   const fetchRestaurants = async () => {
     try {
       const res = await fetch(
@@ -14,6 +17,7 @@ const Body = () => {
         resDataJson?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle
           ?.restaurants;
       setResData(fetchedResData);
+      setAllRes(fetchedResData);
     } catch (error) {
       console.warn(
         "Something went wrong while fetching restaurant data.",
@@ -25,19 +29,45 @@ const Body = () => {
   useEffect(() => {
     fetchRestaurants();
   }, []);
-  return (
+
+  return resData.length ? (
     <main className="body-container">
-      <div
-        className="filter"
-        onClick={() => {
-          const filteredResData = resData.filter((res) => {
-            console.log(res.info.avgRating);
-            return res.info.avgRating > 4.2;
-          });
-          setResData(filteredResData);
-        }}
-      >
-        Top rated restaurants
+      <div className="functionality-wrapper">
+        <div
+          className="filter"
+          onClick={() => {
+            const filteredResData = resData.filter((res) => {
+              console.log(res.info.avgRating);
+              return res.info.avgRating > 4.2;
+            });
+            setResData(filteredResData);
+          }}
+        >
+          Top rated restaurants
+        </div>
+        <span className="search-wrapper">
+          <input
+            value={restaurantText}
+            onChange={(e) => {
+              setRestaurantText(e.target.value);
+            }}
+            type="text"
+            placeholder="Search restaurant"
+          />
+          <button
+            onClick={() => {
+              const filteredRes = allRes?.filter((res) => {
+                return res?.info?.name
+                  ?.toLowerCase()
+                  ?.includes(restaurantText.toLowerCase());
+              });
+              setResData(filteredRes);
+              setRestaurantText("");
+            }}
+          >
+            Search
+          </button>
+        </span>
       </div>
       <div className="restaurantContainer">
         {resData.map((restaurant) => {
@@ -49,6 +79,8 @@ const Body = () => {
         })}
       </div>
     </main>
+  ) : (
+    <ShimmerUI />
   );
 };
 
